@@ -11,7 +11,7 @@ from Scripts import selenium_Funct
 
 constants.username = os.getenv("USER_NAME")
 constants.password = os.getenv("PASS")
-constants.commaseparated = "Field1;Field2;field3"
+constants.commaseparated = "tech lead;head ti"
 constants.upto_page = 1
 
 
@@ -58,10 +58,12 @@ def guibuild():
     
     label = Label(root, text="Now Below enter your intrests separated by ;").grid(row=11, column=0)
     label2 = Label(root, text="for eg. to search for TCS , Accenture and Wipro Enter: ").grid(row=12, column=0)
+    
     label3 = Label(root, text="TCS;Accenture;Wipro").grid(row=13, column=0)
     e3 = Entry(root, width=50, borderwidth=3, bg="white", fg='black')
     e3.insert(0, constants.commaseparated)
     e3.grid(row=15, column=0, columnspan=3, padx=10, pady=7)
+    
     e4 = Entry(root, width=50, borderwidth=3, bg="white", fg='black')
     labelx = Label(root, text="How many pages you want to automate, for the First time use enter 1").grid(row=18,
                                                                                                           column=0)
