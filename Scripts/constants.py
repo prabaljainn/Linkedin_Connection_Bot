@@ -3,15 +3,17 @@ import os
 
 load_dotenv()
 
-USERNAME = os.getenv("USER_NAME")
-COMMASEPARATED = "tech lead"
-PASSWORD = os.getenv("PASS")
-CONNECTION_MESS = ""
-UPTO_PAGE = 1
+
+class User:
+    USERNAME = os.getenv("USER_NAME")
+    COMMASEPARATED = "tech lead"
+    PASSWORD = os.getenv("PASS")
+    CONNECTION_MESS = ""
+    UPTO_PAGE = 1
 
 
 # Just to add some colors in text
-class BCOLORS:
+class Bcolors:
     HEADER = "\033[95m"
     OKBLUE = "\033[94m"
     OKCYAN = "\033[96m"

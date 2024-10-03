@@ -8,14 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
 import csv
 import time
-from constants import (
-    USERNAME,
-    PASSWORD,
-    COMMASEPARATED,
-    CONNECTION_MESS,
-    UPTO_PAGE,
-    BCOLORS,
-)
+import constants
 
 
 # Configuração inicial do WebDriver
@@ -105,17 +98,17 @@ def main():
     # Realiza login no LinkedIn
     userName = driver.find_element(By.ID, "username")
     userName.clear()
-    userName.send_keys(USERNAME)
+    userName.send_keys(constants.User.USERNAME)
     userName.send_keys(Keys.RETURN)
 
     password = driver.find_element(By.ID, "password")
     password.clear()
-    password.send_keys(PASSWORD)
+    password.send_keys(constants.User.PASSWORD)
     password.send_keys(Keys.RETURN)
 
     # Loop através das palavras-chave e páginas
-    for keyword in list(COMMASEPARATED.split(";")):
-        for page in range(1, int(UPTO_PAGE) + 1):
+    for keyword in list(constants.User.COMMASEPARATED.split(";")):
+        for page in range(1, int(constants.User.UPTO_PAGE) + 1):
             time.sleep(5)
 
             link = f"https://www.linkedin.com/search/results/people/?keywords={keyword}&origin=CLUSTER_EXPANSION&network=%5B%22S%22%2C%22O%22%5D&page={page}"
@@ -134,92 +127,71 @@ def main():
             first_number = None
 
             # Loop através dos cartões de resultados
-            for i in range(1, len(list_of_cards) + 1):
-                time.sleep(2)
 
-            try:
-                button_connect = driver.find_elements(
-                    By.CSS_SELECTOR, "span.artdeco-button__text"
-                )
+    for i in range(1, len(list_of_cards) + 1):
+        time.sleep(2)
 
-                connect_found = False
-                for label in button_connect:
-                    if "connect" in label.text.lower():
-                        connect_found = True
-                        print(f"Botão de conexão encontrado para o cartão {i}")
-                        break
+        try:
+            # Procura pelo primeiro botão de conexão
+            connect_button = next(
+                (
+                    button
+                    for button in driver.find_elements(
+                        By.CSS_SELECTOR, "span.artdeco-button__text"
+                    )
+                    if "connect" in button.text.lower()
+                ),
+                None,
+            )
 
-                if not connect_found:
-                    print(f"Nenhum botão de conexão encontrado para o cartão {i}")
-                else:
-                    print(f"Verificação concluída para card {i}")
-
-                time.sleep(1)
-
-                # Clica no nome da pessoa
-                person_name_link = driver.find_element(
-                    By.CSS_SELECTOR,
-                    f"li[class='reusable-search__result-container']:nth-child({i}) span.app-aware-link",
-                )
-                person_name_link.click()
-                time.sleep(2)
-
-                # Aguarda a página do perfil carregar
-                WebDriverWait(driver, 10).until(lambda driver: driver.title != "")
-
-                # Extrai informações do perfil
-                name_grab = driver.find_element(By.CSS_SELECTOR, "h1").text
-                description1 = driver.find_element(
-                    By.CSS_SELECTOR, "div.entity-result__primary-subtitle"
-                ).text
-                link_to_profile = driver.current_url
-
-                # Loga informações do perfil
-                log(
-                    f"{BCOLORS.WARNING}{name_grab} who is {description1} at {link_to_profile}{BCOLORS.ENDC}"
-                )
-
-                info = [name_grab, description1, link_to_profile]
-
-                csv_io.insert_row(info)
-
-                time.sleep(1)
-
-                # Clica no botão Conectar para todos os cards
-                connect_button = driver.find_element(
-                    By.CSS_SELECTOR,
-                    f"li[class='reusable-search__result-container']:nth-child({i}) button[aria-label='Connect']",
-                )
+            if connect_button:
+                print(f"Botão de conexão encontrado para o cartão {i}")
                 connect_button.click()
                 time.sleep(0)
 
                 # Envia solicitação de conexão
-                send_now_button = driver.find_element(
-                    By.XPATH, "//button[@aria-label='Send now']"
+                send_now_button = next(
+                    (
+                        button
+                        for button in driver.find_elements(
+                            By.CSS_SELECTOR, "span.artdeco-button__text"
+                        )
+                        if "send without a note" in button.text.lower()
+                    ),
+                    None,
                 )
-                send_now_button.click()
 
-                time.sleep(1)
+                if send_now_button:
+                    send_now_button.click()
+                    time.sleep(1)
+                else:
+                    print("Nenhum botão 'Send without a note' encontrado")
 
-            except Exception as e:
-                log(f"Erro ao acessar o perfil da pessoa {i}: {e}")
+            # Extrai informações do perfil
+            name_grab = driver.find_element(By.CSS_SELECTOR, "h1").text
+            description1 = driver.find_element(
+                By.CSS_SELECTOR, "div.entity-result__primary-subtitle"
+            ).text
+            link_to_profile = driver.current_url
 
-                # webpage.visit(link)
+            log(
+                f"{constants.Bcolors.WARNING}{name_grab} who is {description1} at {link_to_profile}{constants.Bcolors.ENDC}"
+            )
 
-                # browser.wait(10)
+            info = [name_grab, description1, link_to_profile]
+            csv_io.insert_row(info)
 
-                # except NoSuchElementException:
-                #     pass
-                # except Exception as e:
-                #     log(e)
+            time.sleep(1)
 
-        log(
-            f"{BCOLORS.UNDERLINE} All New Connection's data appended to dataset.csv {BCOLORS.ENDC}"
-        )
+            # Aguarda até que a página seja carregada completamente
+            # WebDriverWait(driver, 10).until(lambda driver: driver.title != "")
+
+        except Exception as e:
+            log(f"Erro ao acessar o perfil da pessoa {i}: {e}")
 
     browser.end_session()
 
-    csv_io.insert_row(["---------", "----------", "----------", "-------------"])
+    csv_io.insert_row(["---------", "----------", "----------"])
 
 
 if __name__ == "__main__":
