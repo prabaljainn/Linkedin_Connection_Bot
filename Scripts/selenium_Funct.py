@@ -1,5 +1,10 @@
 # importing the required modules
 from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from Scripts import constants
@@ -13,13 +18,21 @@ def configurations():
     global driver
     global options
 
-    options = Options()
-    # opens the window in full screen
-    options.add_argument("--start-maximized")
+    # options = Options()
+    # # opens the window in full screen
+    # options.add_argument("--start-maximized")
+    # options.binary_location = "./ChromeDriver/chromedriver.exe"
+
 
     # setting the Chrome Driver path
-    driver = webdriver.Chrome(
-        options=options, executable_path="ChromeDriver/chromedriver.exe")  # For mac use -> /usr/local/bin/chromedriver
+    driver = webdriver.Chrome()
+    driver.get("https://www.linkedin.com/login")
+
+    # assert "No results found." not in driver.page_source
+    # driver.close()
+    # assert "Python" in driver.title
+
+    # driver = webdriver.Chrome(options=options, executable_path="ChromeDriver/chromedriver.exe")  # For mac use -> /usr/local/bin/chromedriver
 
 
 # this class deals with the CSV file operations like opening the file, setting up the writer, inserting new row, etc.
@@ -114,8 +127,6 @@ def log(text):
     print(text)
 
 # main function
-
-
 def main():
     configurations()
 
@@ -129,22 +140,35 @@ def main():
 
     browser.wait(2)
 
-    webpage.visit("https://www.linkedin.com/login")
+    # webpage.visit("https://www.linkedin.com/login")
+    userName = driver.find_element(By.ID, "username")
+    userName.clear()
+    userName.send_keys(user.username)
+    userName.send_keys(Keys.RETURN)
+    
+    password = driver.find_element(By.ID, "password")
+    password.clear()
+    password.send_keys(user.password)
+    password.send_keys(Keys.RETURN)
 
-    webpage.type_value_with_css_selector("input[id='username']", user.username)
-    webpage.type_value_with_css_selector("input[id='password']", user.password)
-    webpage.click_with_css_selector("button[type='submit']")
+    # elem.send_keys('andrepeixoto@gmail.com')
+    
+    # webpage.type_value_with_css_selector("input[id='username']", user.username)
+    # webpage.type_value_with_css_selector("input[id='password']", user.password)
+    # webpage.click_with_css_selector("button[type='submit']")
 
     for keyword in list(constants.commaseparated.split(';')):
         for page in range(1, int(constants.upto_page) + 1):
-            time.sleep(2)
+            time.sleep(5)
 
             link = "https://www.linkedin.com/search/results/people/?keywords=" + \
-                keyword + "&origin=CLUSTER_EXPANSION&page=" + str(page)
-            webpage.visit(link)
+                keyword + "&origin=CLUSTER_EXPANSION&network=%5B%22S%22%2C%22O%22%5D&page=" + str(page)
+            
+            driver.get(link)
 
-            list_of_cards = list(webpage.grab_elements_with_css_selector(
-                "li[class='reusable-search__result-container ']"))
+            list_of_cards = WebDriverWait(driver, 10).until(
+            EC.presence_of_all_elements_located((By.CLASS_NAME, 'reusable-search__result-container'))
+        )
 
             log(f"a total of {len(list_of_cards)} Connections found on page {page} for {keyword}")
 

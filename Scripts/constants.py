@@ -1,13 +1,11 @@
-# ;==========================================
-# ; Title:  Selenium Connection Bot
-# ; Authors: Prabal Jain and Chandan Gupta
-# ; Year: 2021
-# ; rel: Beta W GUI
-# ;==========================================
+from dotenv import load_dotenv
+import os
 
-username = "YOUREMAIL@gmail.com"
+load_dotenv()
+
+username = os.getenv("USER_NAME")
 commaseparated = "accenture"
-password = "YOUR PASS"
+password = os.getenv("PASS")
 
 connection_mess = ''
 # upto pages is just to let the script know for how many pages you want it to execute
